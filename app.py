@@ -55,10 +55,8 @@ def generate_epics_and_tasks(summary, context=""):
     return response['choices'][0]['message']['content'].strip().split('\n') if response else ["Breakdown generation failed."]
 
 
-
-
 def display_artifacts(breakdown_items):
-    """Display epics and tasks in a structured table format."""
+    """Display epics and tasks in a structured table format with debugging."""
     import pandas as pd
     data = {
         "Epic": [],
@@ -71,16 +69,19 @@ def display_artifacts(breakdown_items):
     story_points = ""
     tasks = ""
     dependencies = ""
+
+    st.write("Debug: Initial Breakdown Items", breakdown_items)  # Debug output
     
     for item in breakdown_items:
+        st.write("Debug: Processing Item", item)  # Debug each item
         if 'Epics:' in item:
-            if current_epic:  # Ensure previous epic data is saved before starting new
+            if current_epic:  # Save previous epic data before starting new
                 data["Epic"].append(current_epic)
                 data["Story Points"].append(story_points)
                 data["Tasks"].append(tasks)
                 data["Dependencies"].append(dependencies)
             current_epic = item.split(":")[1].strip()  # Start new epic
-            story_points = ""  # Reset details for new epic
+            story_points = ""  # Reset for new epic
             tasks = ""
             dependencies = ""
         elif 'Story Points:' in item:
@@ -90,7 +91,7 @@ def display_artifacts(breakdown_items):
         elif 'Dependencies:' in item:
             dependencies = item.split(":")[1].strip()
 
-    # Ensure the last epic is also added
+    # Save the last epic's data
     if current_epic:
         data["Epic"].append(current_epic)
         data["Story Points"].append(story_points)
@@ -98,7 +99,7 @@ def display_artifacts(breakdown_items):
         data["Dependencies"].append(dependencies)
 
     df = pd.DataFrame(data)
-    st.table(df)
+    st.table(df)  # Display the table
 
 
 def main():
