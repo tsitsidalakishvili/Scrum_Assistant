@@ -3,5 +3,7 @@ openai==0.27.0
 moviepy==1.0.3
 atlassian-python-api==3.25.0
 pydub==0.25.1
-ffprobe 
-ffmpeg 
+ffmpeg-python==0.2.0  # Use ffmpeg-python which is a wrapper for ffmpeg, compatible with pip
+altair==4.2.2
+click==8.0.0
+protobuf<4
