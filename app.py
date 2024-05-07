@@ -4,9 +4,6 @@ import openai
 from moviepy.editor import VideoFileClip
 from pydub import AudioSegment
 
-# Set API key for OpenAI
-openai.api_key = APIKEY  # Make sure APIKEY is defined or imported from your constants or config file
-
 def ensure_directory_exists(directory):
     """Ensure that the specified directory exists."""
     if not os.path.exists(directory):
@@ -22,9 +19,10 @@ def extract_audio(video_file_path, output_audio_path):
     video.close()
 
 @st.cache_data
-def transcribe(audio_file_path):
+def transcribe(audio_file_path, api_key):
     """Transcribe the specified audio file using OpenAI's Whisper model."""
     try:
+        openai.api_key = api_key
         with open(audio_file_path, "rb") as audio_file:
             transcription = openai.Audio.transcribe(model="whisper-1", file=audio_file, language="en")
             return transcription['text'] if 'text' in transcription else "No transcript available."
@@ -33,13 +31,14 @@ def transcribe(audio_file_path):
         return ""
 
 @st.cache_data
-def transcribe_segments(audio_segments):
+def transcribe_segments(audio_segments, api_key):
     """Transcribe multiple audio segments and concatenate the results."""
     transcriptions = []
     for segment in audio_segments:
         segment_path = "temp_segment.mp3"
         segment.export(segment_path, format="mp3")
         try:
+            openai.api_key = api_key
             with open(segment_path, "rb") as audio_file:
                 transcription = openai.Audio.transcribe(model="whisper-1", file=audio_file, language="en")
                 transcriptions.append(transcription['text'] if 'text' in transcription else "")
@@ -50,24 +49,34 @@ def transcribe_segments(audio_segments):
     return " ".join(transcriptions)
 
 @st.cache_data
-def summarize_transcription(transcription, context):
+def summarize_transcription(transcription, context, api_key):
     """Summarize the transcription using OpenAI's language model with additional context."""
-    messages = [
-        {"role": "system", "content": f"Please summarize this transcription, create action points, decisions: {context}"},
-        {"role": "user", "content": transcription}
-    ]
-    response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
-    return response['choices'][0]['message']['content'] if response else "Summarization failed."
+    try:
+        openai.api_key = api_key
+        messages = [
+            {"role": "system", "content": f"Please summarize this transcription, create action points, decisions: {context}"},
+            {"role": "user", "content": transcription}
+        ]
+        response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
+        return response['choices'][0]['message']['content'] if response else "Summarization failed."
+    except Exception as e:
+        st.error(f"Failed to summarize transcription: {str(e)}")
+        return ""
 
 @st.cache_data
-def generate_epics_and_tasks(summary, context=""):
+def generate_epics_and_tasks(summary, context, api_key):
     """Generate structured breakdown into epics and tasks, including dependencies and story points."""
-    messages = [
-        {"role": "system", "content": "Generate a structured breakdown of epics and tasks from the summary. Include possible dependencies and estimated effort in story points."},
-        {"role": "user", "content": summary}
-    ]
-    response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
-    return response['choices'][0]['message']['content'].strip().split('\n') if response else ["Breakdown generation failed."]
+    try:
+        openai.api_key = api_key
+        messages = [
+            {"role": "system", "content": "Generate a structured breakdown of epics and tasks from the summary. Include possible dependencies and estimated effort in story points."},
+            {"role": "user", "content": summary}
+        ]
+        response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
+        return response['choices'][0]['message']['content'].strip().split('\n') if response else ["Breakdown generation failed."]
+    except Exception as e:
+        st.error(f"Failed to generate breakdown: {str(e)}")
+        return []
 
 def split_audio(audio_file_path, segment_length=300):
     """Splits the audio file into segments of the specified length in seconds."""
@@ -80,6 +89,8 @@ def main():
     st.title("Audio and Video Upload and Transcription App")
     temp_dir = r'C:\Temp\transcripts'
     ensure_directory_exists(temp_dir)
+
+    api_key = st.sidebar.text_input("Enter your OpenAI API key:", type="password")
 
     # Define column widths
     cols = st.columns(3)
@@ -104,7 +115,7 @@ def main():
 
                 if st.button("Start Transcription"):
                     audio_segments = split_audio(audio_file_path)
-                    transcription = transcribe_segments(audio_segments)
+                    transcription = transcribe_segments(audio_segments, api_key)
                     st.text_area("Transcription:", value=transcription, height=200)
                     st.session_state.transcription = transcription  # Store transcription in session state
 
@@ -114,7 +125,7 @@ def main():
             with st.expander("Summarize Transcript"):
                 summarization_context = st.text_input("Enter context for better summarization:")
                 if st.button("Summarize"):
-                    summary = summarize_transcription(st.session_state.transcription, summarization_context)
+                    summary = summarize_transcription(st.session_state.transcription, summarization_context, api_key)
                     st.text_area("Summary:", value=summary, height=200)
                     st.session_state.summary = summary  # Store summary in session state
 
@@ -124,7 +135,7 @@ def main():
             with st.expander("Breakdown into Epics and Tasks"):
                 context = st.text_input("Enter context to enhance the breakdown:")
                 if st.button("Generate Breakdown"):
-                    breakdown_items = generate_epics_and_tasks(st.session_state.summary, context)
+                    breakdown_items = generate_epics_and_tasks(st.session_state.summary, context, api_key)
                     st.write("Generated Breakdown:")
                     for item in breakdown_items:
                         if item:
