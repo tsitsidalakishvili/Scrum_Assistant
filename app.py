@@ -74,16 +74,20 @@ def display_artifacts(breakdown_items):
                 data["Story Points"].append(story_points)
                 data["Tasks"].append(", ".join(tasks))
                 data["Dependencies"].append(", ".join(dependencies))
-                # Reset for new epic
-                tasks = []
-                dependencies = []
             current_epic = item.split(":")[1].strip()
             story_points = ""
+            tasks = []
+            dependencies = []
         elif '- Task' in item:  # Parses tasks and their story points
             task_detail = item.split(":")[1].strip()
-            task_name, points = task_detail.rsplit("(", 1)
-            tasks.append(task_name.strip())
-            story_points += points.rstrip(" story points)").strip() + ", "
+            task_name_points = task_detail.rsplit("(", 1)
+            if len(task_name_points) == 2:
+                task_name, points = task_name_points
+                tasks.append(task_name.strip())
+                story_points += points.rstrip(" story points)").strip() + ", "
+            else:
+                # Handle unexpected format
+                print("Unexpected format for task:", item)
         elif 'depends on Task' in item:  # Parses dependencies
             dependency_detail = item.split(":")[1].strip()
             dependencies.append(dependency_detail)
@@ -97,6 +101,13 @@ def display_artifacts(breakdown_items):
 
     df = pd.DataFrame(data)
     st.table(df)  # Display the table
+
+# Visualize epics, tasks, and dependencies outside of columns
+if 'summary' in st.session_state:
+    breakdown_items = generate_epics_and_tasks(st.session_state.summary, context)
+    fig = visualize_epics_tasks_dependencies(breakdown_items)
+    st.write(fig)
+
 
 
 def main():
