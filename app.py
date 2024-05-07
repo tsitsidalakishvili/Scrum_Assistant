@@ -37,7 +37,6 @@ def summarize_transcription(transcription, context, api_key):
     openai.api_key = api_key
     messages = [
         {"role": "system", "content": f"Convert this detailed transcript into a concise format suitable for Scrum: identify key user stories, tasks, and acceptance criteria that align with the project goals: {context}"},
-        
         {"role": "user", "content": transcription}
     ]
     response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
@@ -51,6 +50,24 @@ def generate_epics_and_tasks(summary, context=""):
     ]
     response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
     return response['choices'][0]['message']['content'].strip().split('\n') if response else ["Breakdown generation failed."]
+
+def visualize_epics_tasks_dependencies(breakdown_items):
+    """Visualize epics, tasks, and dependencies using a graph."""
+    fig = go.Figure()
+
+    for item in breakdown_items:
+        if item:
+            epic, tasks = item.split(':')
+            tasks = tasks.split(',')
+            for task in tasks:
+                fig.add_trace(go.Scatter(x=[epic, task], y=[0, 1], mode='lines+markers', name=task))
+    
+    fig.update_layout(title='Epics, Tasks, and Dependencies Visualization',
+                      xaxis_title='Items',
+                      yaxis_title='Progress',
+                      showlegend=False)
+
+    return fig
 
 def display_artifacts(breakdown_items):
     """Display epics and tasks in a structured table format with updated parsing logic."""
@@ -101,14 +118,6 @@ def display_artifacts(breakdown_items):
 
     df = pd.DataFrame(data)
     st.table(df)  # Display the table
-
-# Visualize epics, tasks, and dependencies outside of columns
-if 'summary' in st.session_state:
-    breakdown_items = generate_epics_and_tasks(st.session_state.summary, context)
-    fig = visualize_epics_tasks_dependencies(breakdown_items)
-    st.write(fig)
-
-
 
 def main():
     st.set_page_config(layout="wide")
@@ -165,9 +174,17 @@ def main():
                     for item in breakdown_items:
                         if item:
                             st.write(item)
-                    # Visualize epics, tasks, and dependencies
-                    fig = visualize_epics_tasks_dependencies(breakdown_items)
-                    st.plotly_chart(fig)
+
+    # Display epics and tasks outside of columns
+    if 'summary' in st.session_state:
+        breakdown_items = generate_epics_and_tasks(st.session_state.summary, context)
+        display_artifacts(breakdown_items)
+
+    # Visualize epics, tasks, and dependencies outside of columns
+    if 'summary' in st.session_state:
+        breakdown_items = generate_epics_and_tasks(st.session_state.summary, context)
+        fig = visualize_epics_tasks_dependencies(breakdown_items)
+        st.write(fig)
 
     # Cleanup
     if uploaded_file is not None:
