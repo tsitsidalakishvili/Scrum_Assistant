@@ -53,6 +53,10 @@ def generate_epics_and_tasks(summary, context=""):
     ]
     response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
     return response['choices'][0]['message']['content'].strip().split('\n') if response else ["Breakdown generation failed."]
+
+
+
+
 def display_artifacts(breakdown_items):
     """Display epics and tasks in a structured table format."""
     import pandas as pd
@@ -64,23 +68,37 @@ def display_artifacts(breakdown_items):
     }
     
     current_epic = ""
+    story_points = ""
+    tasks = ""
+    dependencies = ""
+    
     for item in breakdown_items:
         if 'Epics:' in item:
-            current_epic = item.split(":")[1].strip()
+            if current_epic:  # Ensure previous epic data is saved before starting new
+                data["Epic"].append(current_epic)
+                data["Story Points"].append(story_points)
+                data["Tasks"].append(tasks)
+                data["Dependencies"].append(dependencies)
+            current_epic = item.split(":")[1].strip()  # Start new epic
+            story_points = ""  # Reset details for new epic
+            tasks = ""
+            dependencies = ""
         elif 'Story Points:' in item:
             story_points = item.split(":")[1].strip()
         elif 'Tasks:' in item:
             tasks = item.split(":")[1].strip()
         elif 'Dependencies:' in item:
             dependencies = item.split(":")[1].strip()
-            data["Epic"].append(current_epic)
-            data["Story Points"].append(story_points)
-            data["Tasks"].append(tasks)
-            data["Dependencies"].append(dependencies)
+
+    # Ensure the last epic is also added
+    if current_epic:
+        data["Epic"].append(current_epic)
+        data["Story Points"].append(story_points)
+        data["Tasks"].append(tasks)
+        data["Dependencies"].append(dependencies)
 
     df = pd.DataFrame(data)
     st.table(df)
-
 
 
 def main():
