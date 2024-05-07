@@ -42,9 +42,15 @@ def summarize_transcription(transcription, context, api_key):
     response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
     return response['choices'][0]['message']['content'] if response else "Summarization failed."
 
-def generate_epics_and_tasks(summary, context):
-    # Example implementation, you should replace this with your actual function logic
-    return ["Epic 1: Based on summary part 1", "Task 1.1: Action based on summary part 1"]
+def generate_epics_and_tasks(summary, context=""):
+    """Generate structured breakdown into epics and tasks, including dependencies and story points."""
+    messages = [
+        {"role": "system", "content": "Generate a structured breakdown of epics and tasks from the summary. Include possible dependencies and estimated effort in story points."},
+        {"role": "user", "content": summary}
+    ]
+    response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
+    return response['choices'][0]['message']['content'].strip().split('\n') if response else ["Breakdown generation failed."]
+
 
 def main():
     st.set_page_config(layout="wide")
