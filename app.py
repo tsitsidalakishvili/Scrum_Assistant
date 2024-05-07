@@ -38,7 +38,7 @@ def summarize_transcription(transcription, context, api_key):
     """Generates a concise summary and actionable points from the transcription tailored for Scrum teams."""
     openai.api_key = api_key
     messages = [
-        {"role": "system", "content": f"Summarize for clarity and action points for Scrum planning: {context}"},
+        {"role": "system", "content": f"Convert this detailed transcript into a concise format suitable for Scrum: identify key user stories, tasks, and acceptance criteria that align with the project goals. Context: {context}."},
         {"role": "user", "content": transcription}
     ]
     response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
