@@ -9,7 +9,7 @@ def ensure_directory_exists(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-@st.cache_data
+@st.cache
 def extract_audio(video_file_path, output_audio_path):
     """Extract audio from a video file and save it as an MP3 file."""
     video = VideoFileClip(video_file_path)
@@ -18,7 +18,7 @@ def extract_audio(video_file_path, output_audio_path):
     audio.close()
     video.close()
 
-@st.cache_data
+@st.cache
 def transcribe(audio_file_path, api_key):
     """Transcribe the specified audio file using OpenAI's Whisper model."""
     try:
@@ -30,7 +30,7 @@ def transcribe(audio_file_path, api_key):
         st.error(f"Failed to transcribe audio: {str(e)}")
         return ""
 
-@st.cache_data
+@st.cache
 def transcribe_segments(audio_segments, api_key):
     """Transcribe multiple audio segments and concatenate the results."""
     transcriptions = []
@@ -48,7 +48,7 @@ def transcribe_segments(audio_segments, api_key):
         os.remove(segment_path)  # Clean up temporary files
     return " ".join(transcriptions)
 
-@st.cache_data
+@st.cache
 def summarize_transcription(transcription, context, api_key):
     """Summarize the transcription using OpenAI's language model with additional context."""
     try:
@@ -63,7 +63,7 @@ def summarize_transcription(transcription, context, api_key):
         st.error(f"Failed to summarize transcription: {str(e)}")
         return ""
 
-@st.cache_data
+@st.cache
 def generate_epics_and_tasks(summary, context, api_key):
     """Generate structured breakdown into epics and tasks, including dependencies and story points."""
     try:
