@@ -85,6 +85,7 @@ def display_artifacts(breakdown_items):
     dependencies = []
     
     for item in breakdown_items:
+        print("Processing item:", item)  # Add print statement to inspect item
         if 'Epic' in item:  # Starts a new epic
             if current_epic:  # Save previous epic data before starting new
                 data["Epic"].append(current_epic)
@@ -98,6 +99,8 @@ def display_artifacts(breakdown_items):
         elif '- Task' in item:  # Parses tasks and their story points
             task_detail = item.split(":")[1].strip()
             task_name_points = task_detail.rsplit("(", 1)
+            print("Task detail:", task_detail)  # Add print statement to inspect task_detail
+            print("Task name points:", task_name_points)  # Add print statement to inspect task_name_points
             if len(task_name_points) == 2:
                 task_name, points = task_name_points
                 tasks.append(task_name.strip())
@@ -118,6 +121,7 @@ def display_artifacts(breakdown_items):
 
     df = pd.DataFrame(data)
     st.table(df)  # Display the table
+
 
 def main():
     st.set_page_config(layout="wide")
