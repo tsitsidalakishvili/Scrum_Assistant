@@ -57,6 +57,7 @@ def main():
     cols = st.columns(3)
 
     # Column 1: Upload and Transcribe
+    # Column 1: Upload and Transcribe
     with cols[0]:
         with st.expander("Transcribe Audio/Video"):
             uploaded_file = st.file_uploader("Choose a file", type=["mp3", "mp4", "m4a"])
@@ -73,13 +74,11 @@ def main():
                 else:
                     audio_file_path = file_name
                     st.audio(file_name, format=f'audio/{file_type}')
-
+                
                 if st.button("Start Transcription"):
-                    audio_segments = split_audio(audio_file_path)
-                    transcription = transcribe_segments(audio_segments)
+                    transcription = transcribe(audio_file_path)
                     st.text_area("Transcription:", value=transcription, height=200)
                     st.session_state.transcription = transcription  # Store transcription in session state
-
 
     # Column 2: Summarize Transcript
     with cols[1]:
@@ -91,7 +90,7 @@ def main():
                     st.text_area("Summary:", value=summary, height=200)
                     st.session_state.summary = summary  # Store summary in session state
 
-
+    
     # Column 4: Breakdown into Epics and Tasks
     with cols[3]:
         if 'summary' in st.session_state:
