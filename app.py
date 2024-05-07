@@ -56,7 +56,7 @@ def generate_epics_and_tasks(summary, context=""):
 
 
 def display_artifacts(breakdown_items):
-    """Display epics and tasks in a structured table format with debugging."""
+    """Display epics and tasks in a structured table format with updated parsing logic."""
     import pandas as pd
     data = {
         "Epic": [],
@@ -67,36 +67,36 @@ def display_artifacts(breakdown_items):
     
     current_epic = ""
     story_points = ""
-    tasks = ""
-    dependencies = ""
-
-    st.write("Debug: Initial Breakdown Items", breakdown_items)  # Debug output
+    tasks = []
+    dependencies = []
     
     for item in breakdown_items:
-        st.write("Debug: Processing Item", item)  # Debug each item
-        if 'Epics:' in item:
+        if 'Epic' in item:  # Starts a new epic
             if current_epic:  # Save previous epic data before starting new
                 data["Epic"].append(current_epic)
                 data["Story Points"].append(story_points)
-                data["Tasks"].append(tasks)
-                data["Dependencies"].append(dependencies)
-            current_epic = item.split(":")[1].strip()  # Start new epic
-            story_points = ""  # Reset for new epic
-            tasks = ""
-            dependencies = ""
-        elif 'Story Points:' in item:
-            story_points = item.split(":")[1].strip()
-        elif 'Tasks:' in item:
-            tasks = item.split(":")[1].strip()
-        elif 'Dependencies:' in item:
-            dependencies = item.split(":")[1].strip()
+                data["Tasks"].append(", ".join(tasks))
+                data["Dependencies"].append(", ".join(dependencies))
+                # Reset for new epic
+                tasks = []
+                dependencies = []
+            current_epic = item.split(":")[1].strip()
+            story_points = ""
+        elif '- Task' in item:  # Parses tasks and their story points
+            task_detail = item.split(":")[1].strip()
+            task_name, points = task_detail.rsplit("(", 1)
+            tasks.append(task_name.strip())
+            story_points += points.rstrip(" story points)").strip() + ", "
+        elif 'depends on Task' in item:  # Parses dependencies
+            dependency_detail = item.split(":")[1].strip()
+            dependencies.append(dependency_detail)
 
     # Save the last epic's data
     if current_epic:
         data["Epic"].append(current_epic)
         data["Story Points"].append(story_points)
-        data["Tasks"].append(tasks)
-        data["Dependencies"].append(dependencies)
+        data["Tasks"].append(", ".join(tasks))
+        data["Dependencies"].append(", ".join(dependencies))
 
     df = pd.DataFrame(data)
     st.table(df)  # Display the table
