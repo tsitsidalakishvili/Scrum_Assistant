@@ -55,6 +55,9 @@ def generate_epics_and_tasks(summary, context=""):
     return response['choices'][0]['message']['content'].strip().split('\n') if response else ["Breakdown generation failed."]
 
 
+
+
+
 def display_artifacts(breakdown_items):
     """Display epics and tasks in a structured table format with updated parsing logic."""
     import pandas as pd
@@ -83,9 +86,14 @@ def display_artifacts(breakdown_items):
             dependencies = []
         elif '- Task' in item:  # Parses tasks and their story points
             task_detail = item.split(":")[1].strip()
-            task_name, points = task_detail.rsplit("(", 1)
-            tasks.append(task_name.strip())
-            story_points += points.rstrip(" story points)").strip() + ", "
+            task_name_points = task_detail.rsplit("(", 1)
+            if len(task_name_points) == 2:
+                task_name, points = task_name_points
+                tasks.append(task_name.strip())
+                story_points += points.rstrip(" story points)").strip() + ", "
+            else:
+                # Handle unexpected format
+                print("Unexpected format for task:", item)
         elif 'depends on Task' in item:  # Parses dependencies
             dependency_detail = item.split(":")[1].strip()
             dependencies.append(dependency_detail)
@@ -99,6 +107,11 @@ def display_artifacts(breakdown_items):
 
     df = pd.DataFrame(data)
     st.table(df)  # Display the table
+
+
+
+
+
 
 
 def main():
