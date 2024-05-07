@@ -125,11 +125,12 @@ def main():
                         if item:
                             st.write(item)
 
+   
     # Visualize epics, tasks, and dependencies outside of columns
     if 'summary' in st.session_state:
         breakdown_items = generate_epics_and_tasks(st.session_state.summary, context)
         fig = visualize_epics_tasks_dependencies(breakdown_items)
-        st.plotly_chart(fig)
+        st.write(fig)
 
     # Cleanup
     if uploaded_file is not None:
