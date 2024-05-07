@@ -124,9 +124,9 @@ def main():
                     for item in breakdown_items:
                         if item:
                             st.write(item)
-                    # Visualize epics, tasks, and dependencies
-                    fig = visualize_epics_tasks_dependencies(breakdown_items)
-                    st.plotly_chart(fig)
+# Visualize epics, tasks, and dependencies
+fig = visualize_epics_tasks_dependencies(breakdown_items)
+st.plotly_chart(fig)
 
     # Cleanup
     if uploaded_file is not None:
