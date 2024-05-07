@@ -57,17 +57,22 @@ def visualize_epics_tasks_dependencies(breakdown_items):
 
     for item in breakdown_items:
         if item:
-            epic, tasks = item.split(':')
-            tasks = tasks.split(',')
-            for task in tasks:
-                fig.add_trace(go.Scatter(x=[epic, task], y=[0, 1], mode='lines+markers', name=task))
-    
+            parts = item.split(':')
+            if len(parts) == 2:  # Ensure there are two parts (epic and tasks)
+                epic, tasks = parts
+                tasks = tasks.split(',')
+                for task in tasks:
+                    fig.add_trace(go.Scatter(x=[epic, task], y=[0, 1], mode='lines+markers', name=task))
+            else:
+                print("Unexpected format for item:", item)
+
     fig.update_layout(title='Epics, Tasks, and Dependencies Visualization',
                       xaxis_title='Items',
                       yaxis_title='Progress',
                       showlegend=False)
 
     return fig
+
 
 def display_artifacts(breakdown_items):
     """Display epics and tasks in a structured table format with updated parsing logic."""
