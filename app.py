@@ -54,6 +54,11 @@ def update_or_create_confluence_page(confluence, space_key, title, content, subt
         return confluence.update_page(page_id=page_id, title=title, body=full_content)
 
 
+def split_audio(audio_file_path, segment_length=300):
+    """Splits the audio file into segments of the specified length in seconds."""
+    full_audio = AudioSegment.from_mp3(audio_file_path)
+    total_length = len(full_audio)
+    return [full_audio[i * 1000 * segment_length:(i + 1) * 1000 * segment_length] for i in range(total_length // (segment_length * 1000) + 1)]
 
 
 
