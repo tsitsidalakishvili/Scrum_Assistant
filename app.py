@@ -4,12 +4,13 @@ import openai
 from moviepy.editor import VideoFileClip
 from pydub import AudioSegment
 
+
 def ensure_directory_exists(directory):
     """Ensure that the specified directory exists."""
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-@st.cache
+@st.cache_data
 def extract_audio(video_file_path, output_audio_path):
     """Extract audio from a video file and save it as an MP3 file."""
     video = VideoFileClip(video_file_path)
@@ -18,71 +19,55 @@ def extract_audio(video_file_path, output_audio_path):
     audio.close()
     video.close()
 
-@st.cache
-def transcribe(audio_file_path, api_key):
+@st.cache_data
+def transcribe(audio_file_path):
     """Transcribe the specified audio file using OpenAI's Whisper model."""
     try:
-        openai.api_key = api_key
         with open(audio_file_path, "rb") as audio_file:
-            transcription = openai.Audio.transcribe(model="whisper-1", file=audio_file, language="en")
+            transcription = openai.Audio.transcribe(model="whisper-1", file=audio_file, language="en")  # 'ka' is the language code for Georgian
             return transcription['text'] if 'text' in transcription else "No transcript available."
     except Exception as e:
         st.error(f"Failed to transcribe audio: {str(e)}")
         return ""
 
-@st.cache
-def transcribe_segments(audio_segments, api_key):
-    """Transcribe multiple audio segments and concatenate the results."""
-    transcriptions = []
-    for segment in audio_segments:
-        segment_path = "temp_segment.mp3"
-        segment.export(segment_path, format="mp3")
-        try:
-            openai.api_key = api_key
-            with open(segment_path, "rb") as audio_file:
-                transcription = openai.Audio.transcribe(model="whisper-1", file=audio_file, language="en")
-                transcriptions.append(transcription['text'] if 'text' in transcription else "")
-        except Exception as e:
-            st.error(f"Failed to transcribe segment: {str(e)}")
-            transcriptions.append("")
-        os.remove(segment_path)  # Clean up temporary files
-    return " ".join(transcriptions)
 
-@st.cache
-def summarize_transcription(transcription, context, api_key):
+@st.cache_data
+def summarize_transcription(transcription, context):
     """Summarize the transcription using OpenAI's language model with additional context."""
-    try:
-        openai.api_key = api_key
-        messages = [
-            {"role": "system", "content": f"Please summarize this transcription, create action points, decisions: {context}"},
-            {"role": "user", "content": transcription}
-        ]
-        response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
-        return response['choices'][0]['message']['content'] if response else "Summarization failed."
-    except Exception as e:
-        st.error(f"Failed to summarize transcription: {str(e)}")
-        return ""
+    messages = [
+        {"role": "system", "content": f"Please summarize this transcription, create action points, decisions: {context}"},
+        {"role": "user", "content": transcription}
+    ]
+    response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
+    return response['choices'][0]['message']['content'] if response else "Summarization failed."
 
-@st.cache
-def generate_epics_and_tasks(summary, context, api_key):
+def fetch_confluence_pages(confluence, space_key):
+    """Fetch all pages from a Confluence space."""
+    return confluence.get_all_pages_from_space(space_key, status="current", expand="title")
+
+def update_or_create_confluence_page(confluence, space_key, title, content, subtitle, page_id=None, create_new=False):
+    """Update an existing Confluence page or create a new one based on user selection."""
+    full_content = f"<h2>{subtitle}</h2>{content}"  # Prepend the subtitle in a heading format to the content
+    if create_new:
+        return confluence.create_page(space=space_key, title=title, body=full_content)
+    else:
+        return confluence.update_page(page_id=page_id, title=title, body=full_content)
+
+
+
+
+
+
+@st.cache_data
+def generate_epics_and_tasks(summary, context=""):
     """Generate structured breakdown into epics and tasks, including dependencies and story points."""
-    try:
-        openai.api_key = api_key
-        messages = [
-            {"role": "system", "content": "Generate a structured breakdown of epics and tasks from the summary. Include possible dependencies and estimated effort in story points."},
-            {"role": "user", "content": summary}
-        ]
-        response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
-        return response['choices'][0]['message']['content'].strip().split('\n') if response else ["Breakdown generation failed."]
-    except Exception as e:
-        st.error(f"Failed to generate breakdown: {str(e)}")
-        return []
+    messages = [
+        {"role": "system", "content": "Generate a structured breakdown of epics and tasks from the summary. Include possible dependencies and estimated effort in story points."},
+        {"role": "user", "content": summary}
+    ]
+    response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
+    return response['choices'][0]['message']['content'].strip().split('\n') if response else ["Breakdown generation failed."]
 
-def split_audio(audio_file_path, segment_length=300):
-    """Splits the audio file into segments of the specified length in seconds."""
-    full_audio = AudioSegment.from_mp3(audio_file_path)
-    total_length = len(full_audio)
-    return [full_audio[i * 1000 * segment_length:(i + 1) * 1000 * segment_length] for i in range(total_length // (segment_length * 1000) + 1)]
 
 def main():
     st.set_page_config(layout="wide")  # Set the layout to 'wide'
