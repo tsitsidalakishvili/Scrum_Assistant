@@ -10,7 +10,7 @@ def ensure_directory_exists(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-@st.cache_data
+@st.cache
 def extract_audio(video_file_path, output_audio_path):
     """Extract audio from a video file and save it as an MP3 file."""
     video = VideoFileClip(video_file_path)
@@ -19,7 +19,7 @@ def extract_audio(video_file_path, output_audio_path):
     audio.close()
     video.close()
 
-@st.cache_data
+@st.cache
 def transcribe(audio_file_path):
     """Transcribe the specified audio file using OpenAI's Whisper model."""
     try:
@@ -31,7 +31,7 @@ def transcribe(audio_file_path):
         return ""
 
 
-@st.cache_data
+@st.cache
 def summarize_transcription(transcription, context):
     """Summarize the transcription using OpenAI's language model with additional context."""
     messages = [
@@ -58,7 +58,7 @@ def update_or_create_confluence_page(confluence, space_key, title, content, subt
 
 
 
-@st.cache_data
+@st.cache
 def generate_epics_and_tasks(summary, context=""):
     """Generate structured breakdown into epics and tasks, including dependencies and story points."""
     messages = [
