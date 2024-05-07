@@ -1,8 +1,8 @@
 import os
 import streamlit as st
 import openai
+import plotly.graph_objects as go  # Import Plotly for graph visualization
 from moviepy.editor import VideoFileClip
-from atlassian import Confluence
 
 # Function to ensure the specified directory exists
 def ensure_directory_exists(directory):
@@ -51,6 +51,23 @@ def generate_epics_and_tasks(summary, context=""):
     response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
     return response['choices'][0]['message']['content'].strip().split('\n') if response else ["Breakdown generation failed."]
 
+def visualize_epics_tasks_dependencies(breakdown_items):
+    """Visualize epics, tasks, and dependencies using a graph."""
+    fig = go.Figure()
+
+    for item in breakdown_items:
+        if item:
+            epic, tasks = item.split(':')
+            tasks = tasks.split(',')
+            for task in tasks:
+                fig.add_trace(go.Scatter(x=[epic, task], y=[0, 1], mode='lines+markers', name=task))
+    
+    fig.update_layout(title='Epics, Tasks, and Dependencies Visualization',
+                      xaxis_title='Items',
+                      yaxis_title='Progress',
+                      showlegend=False)
+
+    return fig
 
 def main():
     st.set_page_config(layout="wide")
@@ -107,6 +124,9 @@ def main():
                     for item in breakdown_items:
                         if item:
                             st.write(item)
+                    # Visualize epics, tasks, and dependencies
+                    fig = visualize_epics_tasks_dependencies(breakdown_items)
+                    st.plotly_chart(fig)
 
     # Cleanup
     if uploaded_file is not None:
