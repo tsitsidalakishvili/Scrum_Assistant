@@ -36,7 +36,8 @@ def summarize_transcription(transcription, context, api_key):
     """Summarize the transcription using OpenAI's language model with additional context."""
     openai.api_key = api_key
     messages = [
-        {"role": "system", "content": f"Please summarize this transcription, create action points, decisions: {context}"},
+        {"role": "system", "content": f"Convert this detailed transcript into a concise format suitable for Scrum: identify key user stories, tasks, and acceptance criteria that align with the project goals: {context}"},
+        
         {"role": "user", "content": transcription}
     ]
     response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
@@ -51,23 +52,52 @@ def generate_epics_and_tasks(summary, context=""):
     response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
     return response['choices'][0]['message']['content'].strip().split('\n') if response else ["Breakdown generation failed."]
 
-def visualize_epics_tasks_dependencies(breakdown_items):
-    """Visualize epics, tasks, and dependencies using a graph."""
-    fig = go.Figure()
-
-    for item in breakdown_items:
-        if item:
-            epic, tasks = item.split(':')
-            tasks = tasks.split(',')
-            for task in tasks:
-                fig.add_trace(go.Scatter(x=[epic, task], y=[0, 1], mode='lines+markers', name=task))
+def display_artifacts(breakdown_items):
+    """Display epics and tasks in a structured table format with updated parsing logic."""
+    import pandas as pd
+    data = {
+        "Epic": [],
+        "Story Points": [],
+        "Tasks": [],
+        "Dependencies": []
+    }
     
-    fig.update_layout(title='Epics, Tasks, and Dependencies Visualization',
-                      xaxis_title='Items',
-                      yaxis_title='Progress',
-                      showlegend=False)
+    current_epic = ""
+    story_points = ""
+    tasks = []
+    dependencies = []
+    
+    for item in breakdown_items:
+        if 'Epic' in item:  # Starts a new epic
+            if current_epic:  # Save previous epic data before starting new
+                data["Epic"].append(current_epic)
+                data["Story Points"].append(story_points)
+                data["Tasks"].append(", ".join(tasks))
+                data["Dependencies"].append(", ".join(dependencies))
+                # Reset for new epic
+                tasks = []
+                dependencies = []
+            current_epic = item.split(":")[1].strip()
+            story_points = ""
+        elif '- Task' in item:  # Parses tasks and their story points
+            task_detail = item.split(":")[1].strip()
+            task_name, points = task_detail.rsplit("(", 1)
+            tasks.append(task_name.strip())
+            story_points += points.rstrip(" story points)").strip() + ", "
+        elif 'depends on Task' in item:  # Parses dependencies
+            dependency_detail = item.split(":")[1].strip()
+            dependencies.append(dependency_detail)
 
-    return fig
+    # Save the last epic's data
+    if current_epic:
+        data["Epic"].append(current_epic)
+        data["Story Points"].append(story_points)
+        data["Tasks"].append(", ".join(tasks))
+        data["Dependencies"].append(", ".join(dependencies))
+
+    df = pd.DataFrame(data)
+    st.table(df)  # Display the table
+
 
 def main():
     st.set_page_config(layout="wide")
