@@ -42,7 +42,9 @@ def summarize_transcription(transcription, context, api_key):
     response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
     return response['choices'][0]['message']['content'] if response else "Summarization failed."
 
-# Other existing functions go here...
+def generate_epics_and_tasks(summary, context):
+    # Example implementation, you should replace this with your actual function logic
+    return ["Epic 1: Based on summary part 1", "Task 1.1: Action based on summary part 1"]
 
 def main():
     st.set_page_config(layout="wide")
@@ -52,9 +54,8 @@ def main():
     ensure_directory_exists(temp_dir)
     api_key = st.text_input("Enter your OpenAI API key:", type="password")  # Collect API key securely
 
-
     # Define column widths
-    cols = st.columns(3)
+    cols = st.columns(3)  # Adjust the number of columns if necessary
 
     # Column 1: Upload and Transcribe
     with cols[0]:
@@ -74,26 +75,23 @@ def main():
                     audio_file_path = file_name
                     st.audio(file_name, format=f'audio/{file_type}')
                 
-                # Inside the "Transcribe Audio/Video" expander in Column 1
                 if st.button("Start Transcription"):
                     transcription = transcribe(audio_file_path, api_key)
                     st.text_area("Transcription:", value=transcription, height=200)
                     st.session_state.transcription = transcription  # Store transcription in session state
-
 
     # Column 2: Summarize Transcript
     with cols[1]:
         if 'transcription' in st.session_state:
             with st.expander("Summarize Transcript"):
                 summarization_context = st.text_input("Enter context for better summarization:")
-                # Inside the "Summarize Transcript" expander in Column 2
                 if st.button("Summarize"):
                     summary = summarize_transcription(st.session_state.transcription, summarization_context, api_key)
                     st.text_area("Summary:", value=summary, height=200)
                     st.session_state.summary = summary  # Store summary in session state
 
-    # Column 4: Breakdown into Epics and Tasks
-    with cols[3]:
+    # Column 3: Breakdown into Epics and Tasks
+    with cols[2]:  # Correct the index from cols[3] to cols[2]
         if 'summary' in st.session_state:
             with st.expander("Breakdown into Epics and Tasks"):
                 context = st.text_input("Enter context to enhance the breakdown:")
@@ -112,5 +110,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
