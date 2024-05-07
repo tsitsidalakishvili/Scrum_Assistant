@@ -3,3 +3,4 @@ openai==0.27.0
 moviepy==1.0.3
 atlassian-python-api==3.25.0
 pydub==0.25.1
+ffprobe 
