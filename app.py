@@ -2,27 +2,26 @@ import os
 import streamlit as st
 import openai
 from moviepy.editor import VideoFileClip
+from atlassian import Confluence
 
-# Ensure the specified directory exists, creating it if necessary
+# Function to ensure the specified directory exists
 def ensure_directory_exists(directory):
-    """Create the directory if it doesn't exist to store transcripts."""
+    """Ensure that the specified directory exists."""
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-# Extract audio from video and save as an MP3 file
 @st.cache(allow_output_mutation=True)
 def extract_audio(video_file_path, output_audio_path):
-    """Extracts audio from video files to facilitate audio transcription."""
+    """Extract audio from a video file and save it as an MP3 file."""
     video = VideoFileClip(video_file_path)
     audio = video.audio
     audio.write_audiofile(output_audio_path, codec='mp3')
     audio.close()
     video.close()
 
-# Transcribe audio to text using OpenAI's Whisper model
 @st.cache(allow_output_mutation=True)
 def transcribe(audio_file_path, api_key):
-    """Transcribe audio to text for further processing and analysis in Scrum planning."""
+    """Transcribe the specified audio file using OpenAI's Whisper model."""
     try:
         openai.api_key = api_key
         with open(audio_file_path, "rb") as audio_file:
@@ -32,102 +31,41 @@ def transcribe(audio_file_path, api_key):
         st.error(f"Failed to transcribe audio: {str(e)}")
         return ""
 
-# Summarize transcription focusing on actionable insights for Scrum planning
 @st.cache(allow_output_mutation=True)
 def summarize_transcription(transcription, context, api_key):
-    """Generates a concise summary and actionable points from the transcription tailored for Scrum teams."""
+    """Summarize the transcription using OpenAI's language model with additional context."""
     openai.api_key = api_key
     messages = [
-        {"role": "system", "content": f"Convert this detailed transcript into a concise format suitable for Scrum: identify key user stories, tasks, and acceptance criteria that align with the project goals. Context: {context}."},
+        {"role": "system", "content": f"Please summarize this transcription, create action points, decisions: {context}"},
         {"role": "user", "content": transcription}
     ]
     response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
     return response['choices'][0]['message']['content'] if response else "Summarization failed."
 
-# Generate epics and tasks based on summarized content
 def generate_epics_and_tasks(summary, context=""):
-    """From the summary, derive epics and tasks that can be added to Scrum boards, including dependencies and story points."""
+    """Generate structured breakdown into epics and tasks, including dependencies and story points."""
     messages = [
-        {"role": "system", "content": "Generate structured Scrum epics and tasks from summary including dependencies and story points."},
+        {"role": "system", "content": "Generate a structured breakdown of epics and tasks from the summary. Include possible dependencies and estimated effort in story points."},
         {"role": "user", "content": summary}
     ]
     response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
     return response['choices'][0]['message']['content'].strip().split('\n') if response else ["Breakdown generation failed."]
 
 
-
-
-
-def display_artifacts(breakdown_items):
-    """Display epics and tasks in a structured table format with updated parsing logic."""
-    import pandas as pd
-    data = {
-        "Epic": [],
-        "Story Points": [],
-        "Tasks": [],
-        "Dependencies": []
-    }
-    
-    current_epic = ""
-    story_points = ""
-    tasks = []
-    dependencies = []
-    
-    for item in breakdown_items:
-        if 'Epic' in item:  # Starts a new epic
-            if current_epic:  # Save previous epic data before starting new
-                data["Epic"].append(current_epic)
-                data["Story Points"].append(story_points)
-                data["Tasks"].append(", ".join(tasks))
-                data["Dependencies"].append(", ".join(dependencies))
-            current_epic = item.split(":")[1].strip()
-            story_points = ""
-            tasks = []
-            dependencies = []
-        elif '- Task' in item:  # Parses tasks and their story points
-            task_detail = item.split(":")[1].strip()
-            task_name_points = task_detail.rsplit("(", 1)
-            if len(task_name_points) == 2:
-                task_name, points = task_name_points
-                tasks.append(task_name.strip())
-                story_points += points.rstrip(" story points)").strip() + ", "
-            else:
-                # Handle unexpected format
-                print("Unexpected format for task:", item)
-        elif 'depends on Task' in item:  # Parses dependencies
-            dependency_detail = item.split(":")[1].strip()
-            dependencies.append(dependency_detail)
-
-    # Save the last epic's data
-    if current_epic:
-        data["Epic"].append(current_epic)
-        data["Story Points"].append(story_points)
-        data["Tasks"].append(", ".join(tasks))
-        data["Dependencies"].append(", ".join(dependencies))
-
-    df = pd.DataFrame(data)
-    st.table(df)  # Display the table
-
-
-
-
-
-
-
 def main():
     st.set_page_config(layout="wide")
     st.title("From Audio to JIRA and Confluence")
-    st.subheader("Audio and Video Upload and Transcription App for Scrum Teams")
+    st.subheader("Audio and Video Upload and Transcription App")
     temp_dir = r'C:\Temp\transcripts'
     ensure_directory_exists(temp_dir)
-    api_key = st.text_input("Enter your OpenAI API key:", type="password")
+    api_key = st.text_input("Enter your OpenAI API key:", type="password")  # Collect API key securely
 
     # Define column widths
-    cols = st.columns(3)
+    cols = st.columns(3)  # Adjust the number of columns if necessary
 
-    # Upload and Transcribe for Scrum Documentation
+    # Column 1: Upload and Transcribe
     with cols[0]:
-        with st.expander("Upload and Transcribe"):
+        with st.expander("Transcribe Audio/Video"):
             uploaded_file = st.file_uploader("Choose a file", type=["mp3", "mp4", "m4a"])
             if uploaded_file is not None:
                 file_name = os.path.join(temp_dir, uploaded_file.name)
@@ -146,29 +84,31 @@ def main():
                 if st.button("Start Transcription"):
                     transcription = transcribe(audio_file_path, api_key)
                     st.text_area("Transcription:", value=transcription, height=200)
-                    st.session_state.transcription = transcription
+                    st.session_state.transcription = transcription  # Store transcription in session state
 
-    # Summarize Transcript for Scrum Meetings
+    # Column 2: Summarize Transcript
     with cols[1]:
         if 'transcription' in st.session_state:
-            with st.expander("Summarize for Scrum Meeting"):
-                summarization_context = st.text_input("Provide context for tailored summarization:")
+            with st.expander("Summarize Transcript"):
+                summarization_context = st.text_input("Enter context for better summarization:")
                 if st.button("Summarize"):
                     summary = summarize_transcription(st.session_state.transcription, summarization_context, api_key)
                     st.text_area("Summary:", value=summary, height=200)
-                    st.session_state.summary = summary
+                    st.session_state.summary = summary  # Store summary in session state
 
-    # Breakdown into Scrum Epics and Tasks
-    with cols[2]:
+    # Column 3: Breakdown into Epics and Tasks
+    with cols[2]:  # Correct the index from cols[3] to cols[2]
         if 'summary' in st.session_state:
-            with st.expander("Generate Scrum Artifacts"):
-                context = st.text_input("Context for detailed breakdown:")
+            with st.expander("Breakdown into Epics and Tasks"):
+                context = st.text_input("Enter context to enhance the breakdown:")
                 if st.button("Generate Breakdown"):
                     breakdown_items = generate_epics_and_tasks(st.session_state.summary, context)
-                    st.write("Generated Scrum Artifacts:")
-                    display_artifacts(breakdown_items)
+                    st.write("Generated Breakdown:")
+                    for item in breakdown_items:
+                        if item:
+                            st.write(item)
 
-    # Cleanup resources
+    # Cleanup
     if uploaded_file is not None:
         os.remove(file_name)
         if file_type == "mp4":
