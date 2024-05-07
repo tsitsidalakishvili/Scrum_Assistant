@@ -53,6 +53,35 @@ def generate_epics_and_tasks(summary, context=""):
     ]
     response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
     return response['choices'][0]['message']['content'].strip().split('\n') if response else ["Breakdown generation failed."]
+def display_artifacts(breakdown_items):
+    """Display epics and tasks in a structured table format."""
+    import pandas as pd
+    data = {
+        "Epic": [],
+        "Story Points": [],
+        "Tasks": [],
+        "Dependencies": []
+    }
+    
+    current_epic = ""
+    for item in breakdown_items:
+        if 'Epics:' in item:
+            current_epic = item.split(":")[1].strip()
+        elif 'Story Points:' in item:
+            story_points = item.split(":")[1].strip()
+        elif 'Tasks:' in item:
+            tasks = item.split(":")[1].strip()
+        elif 'Dependencies:' in item:
+            dependencies = item.split(":")[1].strip()
+            data["Epic"].append(current_epic)
+            data["Story Points"].append(story_points)
+            data["Tasks"].append(tasks)
+            data["Dependencies"].append(dependencies)
+
+    df = pd.DataFrame(data)
+    st.table(df)
+
+
 
 def main():
     st.set_page_config(layout="wide")
@@ -106,9 +135,7 @@ def main():
                 if st.button("Generate Breakdown"):
                     breakdown_items = generate_epics_and_tasks(st.session_state.summary, context)
                     st.write("Generated Scrum Artifacts:")
-                    for item in breakdown_items:
-                        if item:
-                            st.write(item)
+                    display_artifacts(breakdown_items)
 
     # Cleanup resources
     if uploaded_file is not None:
