@@ -77,11 +77,10 @@ def display_artifacts(breakdown_items):
                 data["Story Points"].append(story_points)
                 data["Tasks"].append(", ".join(tasks))
                 data["Dependencies"].append(", ".join(dependencies))
-                # Reset for new epic
-                tasks = []
-                dependencies = []
             current_epic = item.split(":")[1].strip()
             story_points = ""
+            tasks = []
+            dependencies = []
         elif '- Task' in item:  # Parses tasks and their story points
             task_detail = item.split(":")[1].strip()
             task_name, points = task_detail.rsplit("(", 1)
