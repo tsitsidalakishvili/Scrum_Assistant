@@ -317,7 +317,6 @@ def create_plotly_traces(G, pos):
 
 
 
-import streamlit as st
 
 def main():
     st.set_page_config(layout="wide")
