@@ -356,7 +356,7 @@ def main():
     with cols[1]:
         if 'transcription' in st.session_state:
             with st.expander("Summarize Transcript"):
-                st.write("Utilize this feature to transform detailed transcriptions into concise summaries. These summaries highlight key points and are tailored for easy assimilation by your scrum team, streamlining your project management process.")
+                st.write("Utilize this feature to transform detailed transcriptions into concise summaries. These summaries highlight key points and are tailored for easy assimilation by your scrum team, and preparing it for further breakdown into epics and tasks.")
                 summarization_context = st.text_input("Enter context for better summarization:")
                 if st.button("Summarize"):
                     summary = summarize_transcription(st.session_state.transcription, summarization_context, api_key)
