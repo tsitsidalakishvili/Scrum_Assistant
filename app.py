@@ -367,8 +367,7 @@ def main():
     with cols[2]:
         if 'summary' in st.session_state:
             with st.expander("Breakdown into Epics and Tasks"):
-                st.write("Convert summaries into structured epics and tasks directly importable into Jira. This section facilitates the organization of project deliverables, ensuring clear and effective task management and alignment with overall project objectives.")
-                context = st.text_input("Enter context to enhance the breakdown:")
+                st.write("Convert summaries into structured epics and tasks directly importable into Jira. This section facilitates clear and effective task management.")                context = st.text_input("Enter context to enhance the breakdown:")
                 if st.button("Generate Breakdown"):
                     breakdown_items = generate_epics_and_tasks(st.session_state.summary, context)
                     st.session_state.breakdown_items = breakdown_items
