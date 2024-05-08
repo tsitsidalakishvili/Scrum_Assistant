@@ -317,7 +317,7 @@ def create_plotly_traces(G, pos):
 
 
 
-
+import streamlit as st
 
 def main():
     st.set_page_config(layout="wide")
@@ -333,6 +333,7 @@ def main():
     # Column 1: Upload and Transcribe
     with cols[0]:
         with st.expander("Transcribe Audio/Video"):
+            st.write("Upload audio or video files capturing discussions about requirements or functionalities. This tool will extract and transcribe the spoken content, preparing it for further analysis and summarization.")
             uploaded_file = st.file_uploader("Choose a file", type=["mp3", "mp4", "m4a"])
             if uploaded_file is not None:
                 file_path = os.path.join(temp_dir, uploaded_file.name)
@@ -355,6 +356,7 @@ def main():
     with cols[1]:
         if 'transcription' in st.session_state:
             with st.expander("Summarize Transcript"):
+                st.write("Utilize this feature to transform detailed transcriptions into concise summaries. These summaries highlight key points and are tailored for easy assimilation by your scrum team, streamlining your project management process.")
                 summarization_context = st.text_input("Enter context for better summarization:")
                 if st.button("Summarize"):
                     summary = summarize_transcription(st.session_state.transcription, summarization_context, api_key)
@@ -365,6 +367,7 @@ def main():
     with cols[2]:
         if 'summary' in st.session_state:
             with st.expander("Breakdown into Epics and Tasks"):
+                st.write("Convert summaries into structured epics and tasks directly importable into Jira. This section facilitates the organization of project deliverables, ensuring clear and effective task management and alignment with overall project objectives.")
                 context = st.text_input("Enter context to enhance the breakdown:")
                 if st.button("Generate Breakdown"):
                     breakdown_items = generate_epics_and_tasks(st.session_state.summary, context)
@@ -373,9 +376,7 @@ def main():
                     for item in breakdown_items:
                         st.write(item)
 
-
-
-    #st.divider()
+    st.divider()
 
     # Visualization and Dataframe outside the columns on the same row with similar size containers
     if 'breakdown_items' in st.session_state and st.session_state.breakdown_items:
@@ -387,7 +388,7 @@ def main():
             with viz_cols[1]:
                 df_breakdown = process_to_dataframe(st.session_state.breakdown_items)
                 st.dataframe(df_breakdown)
-            #st.divider()
+            st.divider()
 
         else:
             st.error("Failed to generate a valid breakdown.")
