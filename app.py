@@ -316,8 +316,6 @@ def create_plotly_traces(G, pos):
 
 
 
-
-
 def main():
     st.set_page_config(layout="wide")
     st.title("From Audio to JIRA and Confluence")
@@ -366,7 +364,8 @@ def main():
     with cols[2]:
         if 'summary' in st.session_state:
             with st.expander("Breakdown into Epics and Tasks"):
-                st.write("Convert summaries into structured epics and tasks directly importable into Jira. This section facilitates clear and effective task management.")                context = st.text_input("Enter context to enhance the breakdown:")
+                st.write("Convert summaries into structured epics and tasks directly importable into Jira. This section facilitates clear and effective task management.")
+                context = st.text_input("Enter context to enhance the breakdown:")
                 if st.button("Generate Breakdown"):
                     breakdown_items = generate_epics_and_tasks(st.session_state.summary, context)
                     st.session_state.breakdown_items = breakdown_items
@@ -374,7 +373,7 @@ def main():
                     for item in breakdown_items:
                         st.write(item)
 
-    #st.divider()
+    st.divider()
 
     # Visualization and Dataframe outside the columns on the same row with similar size containers
     if 'breakdown_items' in st.session_state and st.session_state.breakdown_items:
@@ -386,7 +385,7 @@ def main():
             with viz_cols[1]:
                 df_breakdown = process_to_dataframe(st.session_state.breakdown_items)
                 st.dataframe(df_breakdown)
-            #st.divider()
+            st.divider()
 
         else:
             st.error("Failed to generate a valid breakdown.")
