@@ -2,7 +2,6 @@ import os
 import streamlit as st
 import openai
 from moviepy.editor import VideoFileClip
-from pyvis.network import Network
 import streamlit.components.v1 as components
 import matplotlib.pyplot as plt
 import io
