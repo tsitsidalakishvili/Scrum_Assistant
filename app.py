@@ -376,7 +376,7 @@ def main():
                     for item in breakdown_items:
                         st.write(item)
 
-    st.divider()
+    #st.divider()
 
     # Visualization and Dataframe outside the columns on the same row with similar size containers
     if 'breakdown_items' in st.session_state and st.session_state.breakdown_items:
@@ -388,7 +388,7 @@ def main():
             with viz_cols[1]:
                 df_breakdown = process_to_dataframe(st.session_state.breakdown_items)
                 st.dataframe(df_breakdown)
-            st.divider()
+            #st.divider()
 
         else:
             st.error("Failed to generate a valid breakdown.")
