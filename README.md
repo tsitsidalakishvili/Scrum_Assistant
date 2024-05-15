@@ -22,7 +22,8 @@ This application helps scrum teams streamline requirement capture, transcription
 - **Pandas**: Data manipulation and analysis.
 - **Plotly**: Interactive library for visualization.
 - **Atlassian Python API**: Used for interacting with Confluence.
-- 
+
+  
 ## Installation
 
 1. Clone the repository:
