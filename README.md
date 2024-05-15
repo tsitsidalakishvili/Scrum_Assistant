@@ -40,15 +40,13 @@ This application helps scrum teams streamline requirement capture, transcription
 
 ### Summarize Transcript
 
-1. Provide context for better summarization.
-2. Click "Summarize" to get a concise summary of the transcription.
+Click "Summarize" to transform detailed transcriptions into concise summaries suitable for scrum meetings
 
 ![Summarize Transcription](https://github.com/tsitsidalakishvili/Scrum_Assistant/blob/main/screenshots/2.png)
 
 ### Generate Epics and Tasks
 
-1. Provide context to enhance the breakdown.
-2. Click "Generate Breakdown" to create structured epics and tasks.
+Click "Generate Breakdown" to create structured epics and tasks.
 
 ![Generate Epics and Tasks](https://github.com/tsitsidalakishvili/Scrum_Assistant/blob/main/screenshots/3.png)
 
@@ -64,14 +62,3 @@ This application helps scrum teams streamline requirement capture, transcription
 2. View task dependencies through different visualizations like network graphs, sunburst charts, treemaps, and dependency matrices.
 
 ![Visualize Dependencies](https://github.com/tsitsidalakishvili/Scrum_Assistant/blob/main/screenshots/4.png)
-
-## Screenshots
-
-### Transcription and Summarization
-![Screenshot 1](https://github.com/tsitsidalakishvili/Scrum_Assistant/blob/main/screenshots/1.png)
-
-### Epics and Tasks Breakdown
-![Screenshot 2](https://github.com/tsitsidalakishvili/Scrum_Assistant/blob/main/screenshots/2.png)
-
-### Visualizations
-![Screenshot 3](https://github.com/tsitsidalakishvili/Scrum_Assistant/blob/main/screenshots/3.png)
