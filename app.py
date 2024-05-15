@@ -411,22 +411,21 @@ def main():
     if 'breakdown_items' in st.session_state and st.session_state.breakdown_items:
         if not isinstance(st.session_state.breakdown_items, str):
             with st.expander("Visualization"):
-                with st.container():
-                    # Split layout into two columns, table 60% and heatmap 40%
-                    col1, col2 = st.columns([2, 3])
-                    
-                    # DataFrame display
-                    df_breakdown = process_to_dataframe(st.session_state.breakdown_items)
-                    with col1:
-                        st.dataframe(df_breakdown)
-                    
-                    # Generate and display the dependency matrix
-                    dependency_matrix = generate_dependency_matrix(st.session_state.breakdown_items)
-                    with col2:
-                        plot_dependency_heatmap(dependency_matrix)
-                    
+                # Split layout into two columns, table 60% and heatmap 40%
+                col1, col2 = st.columns([3, 2])
+                
+                # DataFrame display
+                df_breakdown = process_to_dataframe(st.session_state.breakdown_items)
+                with col1:
+                    st.dataframe(df_breakdown)
+                
+                # Generate and display the dependency matrix
+                dependency_matrix = generate_dependency_matrix(st.session_state.breakdown_items)
+                with col2:
+                    plot_dependency_heatmap(dependency_matrix)
         else:
             st.error("Failed to generate a valid breakdown.")
+
         #st.divider()
 
 if __name__ == "__main__":
