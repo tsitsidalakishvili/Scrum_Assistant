@@ -376,7 +376,7 @@ def main():
                 confluence = Confluence(url=confluence_url, username=email, password=api_token)
 
                 space_key = "~6278d6d083954200696720b3"
-                page_id = "49119233"
+                page_id = "54722580"
                 page_title = "UB"
 
                 if st.button("Update Page on Confluence"):
