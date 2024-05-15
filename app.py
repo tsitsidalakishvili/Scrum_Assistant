@@ -377,7 +377,7 @@ def main():
 
                 space_key = "~6278d6d083954200696720b3"
                 page_id = "54722580"
-                page_title = "UB"
+                page_title = "streamlit"
 
                 if st.button("Update Page on Confluence"):
                     status = update_confluence_page(confluence, space_key, page_title, st.session_state.summary, page_id)
