@@ -404,7 +404,7 @@ def main():
 
 
 
-    st.divider()
+    #st.divider()
 
 
     # Visualization and Dataframe under expander
@@ -427,7 +427,7 @@ def main():
                     
         else:
             st.error("Failed to generate a valid breakdown.")
-        st.divider()
+        #st.divider()
 
 if __name__ == "__main__":
     main()
