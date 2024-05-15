@@ -2,13 +2,14 @@ import os
 import streamlit as st
 import openai
 from moviepy.editor import VideoFileClip
-import streamlit.components.v1 as components
-import matplotlib.pyplot as plt
-import io
-import plotly.graph_objects as go
-import networkx as nx
-import plotly.express as px
 import pandas as pd
+import streamlit.components.v1 as components
+import networkx as nx
+import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+import plotly.express as px
+from atlassian import Confluence
+
 
 
 # Function to ensure the specified directory exists
@@ -17,7 +18,7 @@ def ensure_directory_exists(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-@st.cache(allow_output_mutation=True)
+@st.cache_data
 def extract_audio(video_file_path, output_audio_path):
     """Extract audio from a video file and save it as an MP3 file."""
     video = VideoFileClip(video_file_path)
@@ -26,7 +27,7 @@ def extract_audio(video_file_path, output_audio_path):
     audio.close()
     video.close()
 
-@st.cache(allow_output_mutation=True)
+@st.cache_data
 def transcribe(audio_file_path, api_key):
     """Transcribe the specified audio file using OpenAI's Whisper model."""
     try:
@@ -38,31 +39,29 @@ def transcribe(audio_file_path, api_key):
         st.error(f"Failed to transcribe audio: {str(e)}")
         return ""
 
-@st.cache(allow_output_mutation=True)
+@st.cache_data
 def summarize_transcription(transcription, context, api_key):
-    """Summarize the transcription using OpenAI's language model with additional context."""
+    """Summarize the transcription using OpenAI's language model with additional context to include dependencies."""
     openai.api_key = api_key
     messages = [
-        {"role": "system", "content": f"Convert this detailed transcript into a concise format suitable for Scrum: identify key user stories, tasks, and acceptance criteria that align with the project goals: {context}"},
+        {"role": "system", "content": f"Summarize this detailed transcript into a concise format suitable for Scrum: identify key user stories, tasks, acceptance criteria, and their dependencies that align with the project goals: {context}"},
         {"role": "user", "content": transcription}
     ]
     response = openai.ChatCompletion.create(model="gpt-4", messages=messages, temperature=0.5)
     return response['choices'][0]['message']['content'] if response else "Summarization failed."
 
-
-
 def generate_epics_and_tasks(summary, context=""):
-    """Generate a structured breakdown into epics and tasks with clear parent-child relationships and estimated story points, formatted for CSV output."""
+    """Generate a structured breakdown into epics, tasks, and their dependencies with clear parent-child relationships and estimated story points, formatted for CSV output."""
     prompt_text = f"""
-    Based on the provided summary, create a structured breakdown of the software project into epics and tasks suitable for a Jira import. 
-    For each task, specify the task summary, issue type (like Task or Epic), the epic it belongs to (if any), and estimated story points.
+    Based on the provided summary, create a structured breakdown of the software project into epics, tasks, and their dependencies suitable for a Jira import. 
+    For each task, specify the task summary, issue type (like Task or Epic), the epic it belongs to (if any), estimated story points, and any dependencies.
 
     Summary: {summary}
     Context (Project Goals): {context}
 
     Example Output:
-    Summary: Design login page, Issue Type: Task, Epic Name: User Authentication System, Story Points: 3
-    Summary: Implement OAuth integration, Issue Type: Task, Epic Name: User Authentication System, Story Points: 8
+    Summary: Design login page, Issue Type: Task, Epic Name: User Authentication System, Story Points: 3, Dependencies: User Authentication System
+    Summary: Implement OAuth integration, Issue Type: Task, Epic Name: User Authentication System, Story Points: 8, Dependencies: Design login page
     Summary: User Authentication System, Issue Type: Epic, Epic Name: , Story Points: 
     """
 
@@ -77,45 +76,35 @@ def generate_epics_and_tasks(summary, context=""):
         return parse_breakdown_from_text(breakdown_text)
     return ["Breakdown generation failed."]
 
-
-
-
 def parse_breakdown_from_text(breakdown_text):
-    """Parse the structured text breakdown into a list of dictionaries formatted for CSV output."""
+    """Parse the structured text breakdown into a list of dictionaries formatted for CSV output, including dependencies."""
     lines = breakdown_text.split('\n')
     structured_breakdown = []
 
     for line in lines:
         parts = line.split(", ")
-        if len(parts) >= 4:  # Ensure there are at least four parts to avoid IndexError
+        if len(parts) >= 5:  # Ensure there are at least five parts to capture dependencies
             summary = parts[0].split(": ")[1] if len(parts[0].split(": ")) > 1 else ""
             issue_type = parts[1].split(": ")[1] if len(parts[1].split(": ")) > 1 else ""
             epic_name = parts[2].split(": ")[1] if len(parts[2].split(": ")) > 1 else ""
             story_points = parts[3].split(": ")[1] if len(parts[3].split(": ")) > 1 else ""
+            dependencies = parts[4].split(": ")[1] if len(parts[4].split(": ")) > 1 else ""
             structured_breakdown.append({
                 'Summary': summary,
                 'Issue Type': issue_type,
                 'Epic Name': epic_name,
-                'Story Points': story_points
+                'Story Points': story_points,
+                'Dependencies': dependencies
             })
         else:
             print(f"Skipping line due to incorrect format: {line}")
 
     return structured_breakdown
 
-
-
-
-
 def export_to_csv(breakdown_items, filename="output.csv"):
     df = pd.DataFrame(breakdown_items)
     df.to_csv(filename, index=False)
     print(f"Data exported to {filename} successfully.")
-
-
-
-
-
 
 def define_layout():
     return {
@@ -136,18 +125,6 @@ def define_layout():
         'yaxis': {'showgrid': False, 'zeroline': False, 'showticklabels': False}
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
 def format_breakdown(breakdown):
     """Format breakdown into a structured list for visualization."""
     formatted = []
@@ -158,7 +135,6 @@ def format_breakdown(breakdown):
         elif "Task" in line and current_epic:
             formatted.append({'task': line.strip(), 'epic': current_epic})
     return formatted
-
 
 def visualize_dependencies_with_pyvis():
     net = Network(height="750px", width="100%", bgcolor="#222222", font_color="white")
@@ -186,8 +162,6 @@ def visualize_dependencies_with_networkx(breakdown_items):
     st.pyplot(plt)  # Display the figure in Streamlit
     plt.close()
 
-
-
 def visualize_dependencies_with_plotly(breakdown_items):
     # Create a directed graph
     G = nx.DiGraph()
@@ -207,9 +181,6 @@ def visualize_dependencies_with_plotly(breakdown_items):
     # Define figure layout using the define_layout function
     fig = go.Figure(data=[edge_trace, node_trace], layout=define_layout())
     st.plotly_chart(fig, use_container_width=True)
-
-
-
 
 def visualize_sunburst(formatted_breakdown):
     labels = [item['epic'] for item in formatted_breakdown] + [item['task'] for item in formatted_breakdown]
@@ -239,11 +210,9 @@ def visualize_treemap(formatted_breakdown):
     )
     st.plotly_chart(fig, use_container_width=True)
 
-
-
 def process_to_dataframe(breakdown_items):
     """
-    Converts a list of breakdown items into a pandas DataFrame.
+    Converts a list of breakdown items into a pandas DataFrame, including a column for dependencies.
     """
     data = []
     for item in breakdown_items:
@@ -252,17 +221,18 @@ def process_to_dataframe(breakdown_items):
         issue_type = item.get('Issue Type', '')
         epic_name = item.get('Epic Name', '')
         story_points = item.get('Story Points', '')
+        dependencies = item.get('Dependencies', '')  # Ensuring dependencies are handled
 
         data.append({
             'Summary': summary,
             'Issue Type': issue_type,
             'Epic Name': epic_name,
-            'Story Points': story_points
+            'Story Points': story_points,
+            'Dependencies': dependencies  # Adding dependencies to data
         })
 
-    df = pd.DataFrame(data, columns=['Summary', 'Issue Type', 'Epic Name', 'Story Points'])
+    df = pd.DataFrame(data, columns=['Summary', 'Issue Type', 'Epic Name', 'Story Points', 'Dependencies'])  # Include dependencies in DataFrame columns
     return df
-
 
 def create_plotly_traces(G, pos):
     edge_trace = go.Scatter(
@@ -308,11 +278,48 @@ def create_plotly_traces(G, pos):
     
     return edge_trace, node_trace
 
+def generate_dependency_matrix(breakdown_items):
+    """Generate a dependency matrix from the breakdown items."""
+    tasks = [item['Summary'] for item in breakdown_items]
+    matrix = pd.DataFrame(0, index=tasks, columns=tasks)
+
+    for item in breakdown_items:
+        task = item['Summary']
+        dependencies = item['Dependencies'].split('; ')
+        for dependency in dependencies:
+            if dependency in tasks:
+                matrix.at[task, dependency] = 1
+
+    return matrix
+
+def plot_dependency_heatmap(matrix):
+    """Plot a heatmap from the dependency matrix with adjusted size."""
+    fig = px.imshow(matrix,
+                    labels=dict(x="Depends On", y="Tasks", color="Dependency"),
+                    x=matrix.columns,
+                    y=matrix.index,
+                    text_auto=True,
+                    title="Dependency Matrix",
+                    aspect='auto')  # 'auto' adjusts the aspect ratio to fill the container
+
+    # Adjust layout to increase size
+    fig.update_layout(
+        width=800,  # Set the width of the figure
+        height=600,  # Set the height of the figure
+        autosize=True  # Allow the layout size to adjust based on the container
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
 
 
-
-
+def update_confluence_page(confluence, space, title, content, page_id):
+    """Update an existing Confluence page with the specified content."""
+    status = confluence.update_page(
+        page_id=page_id,
+        title=title,
+        body=content
+    )
+    return status
 
 
 
@@ -353,18 +360,40 @@ def main():
     with cols[1]:
         if 'transcription' in st.session_state:
             with st.expander("Summarize Transcript"):
-                st.write("Utilize this feature to transform detailed transcriptions into concise summaries. These summaries highlight key points and are tailored for easy assimilation by your scrum team, and preparing it for further breakdown into epics and tasks.")
+                st.write("Utilize this feature to transform detailed transcriptions into concise summaries. These summaries highlight key points and are tailored for easy assimilation by your scrum team, streamlining your project management process.")
                 summarization_context = st.text_input("Enter context for better summarization:")
                 if st.button("Summarize"):
                     summary = summarize_transcription(st.session_state.transcription, summarization_context, api_key)
                     st.text_area("Summary:", value=summary, height=200)
                     st.session_state.summary = summary
 
+
+        if 'summary' in st.session_state:
+            with st.expander("Update Confluence Page"):
+                confluence_url = st.text_input("Confluence URL", value="https://tsitsieigen.atlassian.net/wiki")
+                email = st.text_input("Email")
+                api_token = st.text_input("API Token", type="password")
+                confluence = Confluence(url=confluence_url, username=email, password=api_token)
+
+                space_key = "~6278d6d083954200696720b3"
+                page_id = "49119233"
+                page_title = "UB"
+
+                if st.button("Update Page on Confluence"):
+                    status = update_confluence_page(confluence, space_key, page_title, st.session_state.summary, page_id)
+                    if 'id' in status:
+                        st.success("Confluence page updated successfully!")
+                    else:
+                        st.error("Failed to update Confluence page")
+
+
+
+
     # Column 3: Breakdown into Epics and Tasks
     with cols[2]:
         if 'summary' in st.session_state:
             with st.expander("Breakdown into Epics and Tasks"):
-                st.write("Convert summaries into structured epics and tasks directly importable into Jira. This section facilitates clear and effective task management.")
+                st.write("Convert summaries into structured epics and tasks directly importable into Jira. This section facilitates the organization of project deliverables, ensuring clear and effective task management and alignment with overall project objectives.")
                 context = st.text_input("Enter context to enhance the breakdown:")
                 if st.button("Generate Breakdown"):
                     breakdown_items = generate_epics_and_tasks(st.session_state.summary, context)
@@ -374,19 +403,31 @@ def main():
                         st.write(item)
 
 
-    # Visualization and Dataframe outside the columns on the same row with similar size containers
-    if 'breakdown_items' in st.session_state and st.session_state.breakdown_items:
-        if not isinstance(st.session_state.breakdown_items, str):  # Check that breakdown is not an error message
-            # Creating equally sized columns for visualization and dataframe
-            viz_cols = st.columns([1, 1])  # Equal distribution
-            with viz_cols[0]:
-                visualize_dependencies_with_plotly(st.session_state.breakdown_items)
-            with viz_cols[1]:
-                df_breakdown = process_to_dataframe(st.session_state.breakdown_items)
-                st.dataframe(df_breakdown)
 
+    st.divider()
+
+
+    # Visualization and Dataframe under expander
+    if 'breakdown_items' in st.session_state and st.session_state.breakdown_items:
+        if not isinstance(st.session_state.breakdown_items, str):
+            with st.expander("Visualization"):
+                with st.container():
+                    # Split layout into two columns, table 60% and heatmap 40%
+                    col1, col2 = st.columns([3, 2])
+                    
+                    # DataFrame display
+                    df_breakdown = process_to_dataframe(st.session_state.breakdown_items)
+                    with col1:
+                        st.dataframe(df_breakdown)
+                    
+                    # Generate and display the dependency matrix
+                    dependency_matrix = generate_dependency_matrix(st.session_state.breakdown_items)
+                    with col2:
+                        plot_dependency_heatmap(dependency_matrix)
+                    
         else:
             st.error("Failed to generate a valid breakdown.")
+        st.divider()
 
 if __name__ == "__main__":
     main()
