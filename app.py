@@ -325,7 +325,7 @@ def update_confluence_page(confluence, space, title, content, page_id):
 
 def main():
     st.set_page_config(layout="wide")
-    st.title("From Audio to JIRA and Confluence")
+    st.title("Scrum Team Assistant")
     st.subheader("Streamlining Requirement Capture for Scrum Teams")
     temp_dir = r'C:\Temp\transcripts'
     ensure_directory_exists(temp_dir)
