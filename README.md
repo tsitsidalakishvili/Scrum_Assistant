@@ -10,7 +10,8 @@ This application helps scrum teams streamline requirement capture, transcription
 - **Summarize Transcription**: Transform detailed transcriptions into concise summaries suitable for scrum meetings.
 - **Generate Epics and Tasks**: Create structured epics and tasks from summaries, ready for import into Jira.
 - **Update Confluence Page**: Automatically update Confluence pages with summarized content.
-- **Visualize Dependencies**: View task dependencies through various visualizations including network graphs, sunburst charts, treemaps, and dependency matrices.
+- **Visualize Dependencies**: View task dependencies through various visualizations including network graphs, sunburst charts, treemaps, and dependency matrices
+
 
 ## Technologies and Libraries Used
 
