@@ -7,3 +7,4 @@ matplotlib==3.5.3
 plotly==5.10.0
 networkx==2.8.5
 pandas==1.4.3
+atlassian
