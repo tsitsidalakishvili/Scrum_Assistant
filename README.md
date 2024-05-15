@@ -28,10 +28,9 @@ This application helps scrum teams streamline requirement capture, transcription
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/scrum-team-assistant.git
-    cd scrum-team-assistant
+    git clone https://github.com/tsitsidalakishvili/Scrum_Assistant
+    cd Scrum_Assistant
     ```
-
 2. Install the required packages:
     ```bash
     pip install -r requirements.txt
