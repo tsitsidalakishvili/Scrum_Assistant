@@ -413,7 +413,7 @@ def main():
             with st.expander("Visualization"):
                 with st.container():
                     # Split layout into two columns, table 60% and heatmap 40%
-                    col1, col2 = st.columns([3, 2])
+                    col1, col2 = st.columns([2, 3])
                     
                     # DataFrame display
                     df_breakdown = process_to_dataframe(st.session_state.breakdown_items)
