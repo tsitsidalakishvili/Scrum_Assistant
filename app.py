@@ -370,7 +370,7 @@ def main():
 
         if 'summary' in st.session_state:
             with st.expander("Update Confluence Page"):
-                confluence_url = st.text_input("Confluence URL", value="https://tsitsieigen.atlassian.net/wiki")
+                confluence_url = st.text_input("Confluence URL", value="https://your-confluence.atlassian.net/wiki")
                 email = st.text_input("Email")
                 api_token = st.text_input("API Token", type="password")
                 confluence = Confluence(url=confluence_url, username=email, password=api_token)
