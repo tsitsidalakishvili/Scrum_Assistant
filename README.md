@@ -12,6 +12,18 @@ This application helps scrum teams streamline requirement capture, transcription
 - **Update Confluence Page**: Automatically update Confluence pages with summarized content.
 - **Visualize Dependencies**: View task dependencies through various visualizations including network graphs, sunburst charts, treemaps, and dependency matrices.
 
+## Technologies and Libraries Used
+
+- **Python**: The core programming language used for this application.
+- **Streamlit**: Used for building the web application interface.
+- **OpenAI**: Utilized for transcription and summarization with Whisper and GPT-4 models.
+- **MoviePy**: Used for video and audio processing.
+- **Pandas**: Data manipulation and analysis.
+- **NetworkX**: Creation and manipulation of complex networks.
+- **Matplotlib**: Plotting library used for visualization.
+- **Plotly**: Interactive graphing library for visualization.
+- **Atlassian Python API**: Used for interacting with Confluence.
+- 
 ## Installation
 
 1. Clone the repository:
