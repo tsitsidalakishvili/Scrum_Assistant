@@ -1,10 +1,6 @@
-
 # Scrum Team Assistant
 
 This application helps scrum teams streamline requirement capture, transcription, summarization, and visualization for better project management. It uses OpenAI's Whisper model for transcription and GPT-4 for summarization and task breakdown. The application includes several visualization tools to depict task dependencies.
-
-![Screenshot 1](screenshots/screenshot1.png)
-![Screenshot 2](screenshots/screenshot2.png)
 
 ## Features
 
@@ -40,15 +36,21 @@ This application helps scrum teams streamline requirement capture, transcription
 2. The application will extract audio from video files if necessary.
 3. Click "Start Transcription" to transcribe the audio.
 
+![Transcribe Audio/Video](https://github.com/tsitsidalakishvili/Scrum_Assistant/blob/main/screenshots/1.png)
+
 ### Summarize Transcript
 
 1. Provide context for better summarization.
 2. Click "Summarize" to get a concise summary of the transcription.
 
+![Summarize Transcription](https://github.com/tsitsidalakishvili/Scrum_Assistant/blob/main/screenshots/2.png)
+
 ### Generate Epics and Tasks
 
 1. Provide context to enhance the breakdown.
 2. Click "Generate Breakdown" to create structured epics and tasks.
+
+![Generate Epics and Tasks](https://github.com/tsitsidalakishvili/Scrum_Assistant/blob/main/screenshots/3.png)
 
 ### Update Confluence Page
 
@@ -61,15 +63,15 @@ This application helps scrum teams streamline requirement capture, transcription
 1. The application generates a breakdown of epics and tasks.
 2. View task dependencies through different visualizations like network graphs, sunburst charts, treemaps, and dependency matrices.
 
+![Visualize Dependencies](https://github.com/tsitsidalakishvili/Scrum_Assistant/blob/main/screenshots/4.png)
+
 ## Screenshots
 
 ### Transcription and Summarization
-![Screenshot 3](screenshots/screenshot3.png)
+![Screenshot 1](https://github.com/tsitsidalakishvili/Scrum_Assistant/blob/main/screenshots/1.png)
 
 ### Epics and Tasks Breakdown
-![Screenshot 4](screenshots/screenshot4.png)
+![Screenshot 2](https://github.com/tsitsidalakishvili/Scrum_Assistant/blob/main/screenshots/2.png)
 
 ### Visualizations
-![Screenshot 5](screenshots/screenshot5.png)
-
-
+![Screenshot 3](https://github.com/tsitsidalakishvili/Scrum_Assistant/blob/main/screenshots/3.png)
