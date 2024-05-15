@@ -60,7 +60,6 @@ Click "Generate Breakdown" to create structured epics and tasks.
 
 ### Visualize Dependencies
 
-1. The application generates a breakdown of epics and tasks.
-2. View task dependencies through different visualizations like network graphs, sunburst charts, treemaps, and dependency matrices.
+View task dependencies through dependency matrices.
 
 ![Visualize Dependencies](https://github.com/tsitsidalakishvili/Scrum_Assistant/blob/main/screenshots/4.png)
