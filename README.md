@@ -1,3 +1,5 @@
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://scrum-team-assistant.streamlit.app/)
+
 # Scrum Team Assistant
 
 This application helps scrum teams streamline requirement capture, transcription, summarization, and visualization for better project management. It uses OpenAI's Whisper model for transcription and GPT-4 for summarization and task breakdown. The application includes several visualization tools to depict task dependencies.
